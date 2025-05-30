@@ -1,111 +1,536 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>WhatsApp Rápido</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <script src="//api.bitrix24.com/api/v1/"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
+        html{
+            font-family: Roboto;
+            background-color: #f9fafb;
         }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 400px;
-            margin: 0 auto;
+        html, body{
+            margin: 0;
         }
-        h1 {
-            color: #25D366;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
+        .error{
+            color: rgb(235, 26, 26);
+            font-weight: 500;
         }
-        input {
+        form select, form textarea, form input{
+            padding: 10px;
+            margin-bottom: 10px;
+            border-color: #edeef0;
+        }
+        form input{
+            color: white;
+            background-color: orange;
+            border-color: orange;
+            border-width: 1px;
+        }
+        form input:hover{
+            color:orange;
+            background-color: #fff;
+            border-color: orange;
+        }
+        .flex{
+            display: flex;
+        }
+        .flex .field-item:first-child{
+            margin-right: 10px;
+        }
+        .flex .field-item{
+            width: 50%;
+        }
+        form textarea, form select{
             width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 15px;
             box-sizing: border-box;
         }
-        button {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            background: #25D366;
-            color: white;
+        .ui-btn{
+            vertical-align: middle;
+            line-height: 20px;
+            padding: 10px 20px;
+            background-color: orange;
             border: none;
-            border-radius: 5px;
+            box-shadow: 0 0 0px 1px #ff9800;
+            font-size: 12px;
+            font-family: Roboto;
+            letter-spacing: 0.7;
+            font-weight: 600;
+            color: #fff;
             cursor: pointer;
-            font-weight: bold;
+            text-transform: uppercase;
         }
-        button:hover {
-            background: #128C7E;
-        }
-        .info {
-            text-align: center;
-            color: #666;
-            margin-top: 15px;
-            font-size: 14px;
+        .ui-btn:hover{
+            background-color: #f39200;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📱 WhatsApp Rápido</h1>
-        
-        <input type="tel" 
-               id="telefone" 
-               placeholder="Digite o telefone (com DDD)"
-               onkeypress="if(event.key === 'Enter') abrirWhatsApp()">
-        
-        <button onclick="abrirWhatsApp()">
-            Abrir WhatsApp
-        </button>
-        
-        <div class="info">
-            Digite o número com DDD<br>
-            Exemplo: 11999887766
+    <p class="error"></p>
+    <form id="wa_form">
+        <div class="flex">
+            <div class="field-item">
+                <select name="phone">
+                    <option value="null">Número não selecionado</option>
+                </select> 
+            </div>
+            <div class="field-item">
+                <select name="templ">
+                    <option value="null">Modelo não selecionado</option>
+                </select> 
+            </div>
         </div>
-    </div>
-
+        <br>
+        <div class="field-item">
+            <textarea name="text" cols="41" rows="5"></textarea> 
+        </div>
+        <div class="field-item">
+            <label>
+                <input type="checkbox" name="app_url" value="Y">
+                <span class="input-text">Abrir no aplicativo</span>
+            </label>
+        </div>
+        <!-- <input type="submit" class="ui-btn" value="Enviar"> -->
+        <button class="ui-btn" type="submit">Enviar</button>
+    </form>
+    
     <script>
-        // Função simples para abrir o WhatsApp
-        function abrirWhatsApp() {
-            var telefone = document.getElementById('telefone').value;
-            
-            // Remove caracteres especiais
-            telefone = telefone.replace(/\D/g, '');
-            
-            if (telefone.length < 10) {
-                alert('Por favor, digite um número válido com DDD');
-                return;
+        const translates = {
+            pt-BR: {
+				numder_option: 'Número não selecionado',
+				templ_option: 'Nenhum modelo selecionado',
+				app_url: 'Abrir no aplicativo',
+				submit: 'Enviar',
+				contact_info_text: 'Não há contato associado',
+				contact_info_phone_text: 'O contato não tem um número de telefone',
+				contact_info_lead_text: 'O lead e o contato não têm um número de telefone',
+				contact_info_company_text: 'O contato e a empresa não têm um número de telefone',
+				contact_info_more_text: 'Mais de um contato vinculado, os dados do primeiro serão usados',
+				contact_info_cont_text: 'A empresa e o contato não têm um número de telefone',
+				templates_log: 'Parece que você ainda não re-salvou os modelos após adicionar suporte a emojis.'
+            },
+            en: {
+                numder_option: 'Number not selected',
+                templ_option: 'No template selected',
+                app_url: 'Open in app',
+                submit: 'Send',
+                contact_info_text: 'No associated contact',
+                contact_info_phone_text: "Contact doesn't have a phone number",
+                contact_info_lead_text: 'The lead and contact do not have a phone number',
+                contact_info_company_text: 'The contact and company do not have a phone number',
+                contact_info_more_text: 'More than one contact is linked, the data of the first one will be used',
+                contact_info_cont_text: 'The company and contact do not have a phone number',
+                templates_log: 'Oh, it seems that you have not yet re-saved the templates after adding Emoji support.'
             }
-            
-            // Adiciona o código do Brasil se necessário
-            if (!telefone.startsWith('55')) {
-                telefone = '55' + telefone;
+        };
+        let lang = 'en';
+        // BX24.init(() => {
+        //     lang = BX24.getLang();
+        //     const nameOption = document.querySelector('[name="phone"]').querySelector('option');
+        //     nameOption.innerText = translates[lang].numder_option;
+        //     const templOption = document.querySelector('[name="templ"]').querySelector('option');
+        //     templOption.innerText = translates[lang].templ_option;
+        //     const appUrlInput = document.querySelector('.input-text');
+        //     appUrlInput.innerText = translates[lang].app_url;
+        //     const submit = document.querySelector('.ui-btn');
+        //     submit.innerText = translates[lang].submit;
+        //     //console.log("nameOption", nameOption);
+        // });
+        
+        let phone = '';
+        // const path = location.pathname
+        // entType = path.match(/deal|lead|contact|company/)[0]
+        BX24.init(() => {
+            lang = BX24.getLang();
+            handler.setLang(lang);
+            getLangAndSetTranslates(lang);
+            let options = BX24.placement.info().options;
+            if(options.ENTITY_ID === 'CRM_DEAL'){
+                handler.dealHandler(options.ENTITY_VALUE_ID)
+            }else if(options.ENTITY_ID === 'CRM_LEAD'){
+                handler.leadHandler(options.ENTITY_VALUE_ID)
+            }else if(options.ENTITY_ID === 'CRM_COMPANY'){
+                handler.companyHandler(options.ENTITY_VALUE_ID)
+            }else if(options.ENTITY_ID === 'CRM_CONTACT'){
+                handler.contactHandler(options.ENTITY_VALUE_ID)
             }
-            
-            // Abre o WhatsApp
-            window.open('https://wa.me/' + telefone, '_blank');
-        }
+        })
+        const form = document.getElementById('wa_form');
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const link = handler.getLink(form.querySelector('select').value, form.querySelector('textarea').value.replace(/\n/g, '%0D%0A'));
+            window.open(
+                link,
+                '_blank' 
+            );
+        })
+        form.querySelector('[name="templ"]').addEventListener('change', (e) => {handler.templChangeHandler(e)})
+        
 
-        // Tenta pegar informações do Bitrix24
-        try {
-            BX24.init(function(){
-                // App está pronto
-                console.log('App WhatsApp carregado!');
-            });
-        } catch(e) {
-            // Funciona mesmo sem o Bitrix24
-            console.log('Rodando fora do Bitrix24');
+        const handler = {
+            templates: null,
+            dealInfo: null,
+            contactInfo: null,
+            companyInfo: null,
+            leadInfo: null,
+            assignedInfo: null,
+            assignedId: 0,
+            type: '',
+            lang: lang,
+            fieldsInfo: null,
+            getLink: (phone, mess) => {
+                const isAppUrl = !!document.querySelector(['[name="app_url"]:checked']);
+                const protocol = isAppUrl ? 'whatsapp://' : 'https://web.whatsapp.com/';
+                return `${protocol}send?phone=${phone}&text=${mess}`
+            },
+            dealHandler: async function(id){
+                this.type = 'deal'
+                this.dealInfo = await this.getDeal(id)
+                this.contactInfo = await this.getContact(this.dealInfo.CONTACT_ID)
+                const contactInfoText = translates[this.lang].contact_info_text;
+                console.log({contactInfoText, lang: this.lang, t: translates[this.lang].contact_info_text});
+                const contactInfoPhoneText = translates[this.lang].contact_info_phone_text;
+                if(!this.contactInfo || this.contactInfo.error) return this.showError(contactInfoText)
+                else if(this.contactInfo.HAS_PHONE !== 'Y') return this.showError(contactInfoPhoneText)
+                this.fieldsInfo = await this.getFieldsInfo();
+                const phones = this.contactInfo.PHONE;
+                this.finalize(phones)
+                this.assignedId = this.dealInfo['ASSIGNED_BY_ID']
+            },
+            async leadHandler(id){
+                this.type = 'lead'
+                this.leadInfo = await this.getLead(id)
+                if(this.leadInfo['CONTACT_ID'] && this.leadInfo['CONTACT_ID'] > 0){
+                    this.contactInfo = await this.getContact(this.leadInfo.CONTACT_ID)
+                }
+                const contactInfoLeadText = translates[this.lang].contact_info_lead_text;
+                if(this.leadInfo.HAS_PHONE !== 'Y' && this.contactInfo?.HAS_PHONE !== 'Y') return this.showError(contactInfoLeadText)
+                let phones = [];
+                if(this.leadInfo.HAS_PHONE === 'Y'){
+                    phones = this.leadInfo.PHONE;
+                } else if(this.contactInfo && this.contactInfo.HAS_PHONE === 'Y')
+                    phones = this.contactInfo.PHONE;
+                
+                this.fieldsInfo = await this.getFieldsInfo();
+                this.finalize(phones)
+                this.assignedId = this.leadInfo['ASSIGNED_BY_ID']
+            },
+            async contactHandler(id){
+                this.type = 'contact'
+                this.contactInfo = await this.getContact(id)
+                console.log(this.contactInfo);
+                let phones = [];
+                if(this.contactInfo.HAS_PHONE === 'Y') phones = this.contactInfo.PHONE
+                else if(this.contactInfo.COMPANY_ID > 0){
+                    this.companyInfo = await this.getCompany(this.contactInfo.COMPANY_ID)
+                    if(this.companyInfo.HAS_PHONE === 'Y')
+                        phones = this.companyInfo.PHONE
+                }
+                const contactInfoLeadText = translates[this.lang].contact_info_company_text;
+                if(phones.length <= 0) return this.showError(contactInfoLeadText);
+                this.assignedId = this.contactInfo['ASSIGNED_BY_ID'];
+                this.fieldsInfo = await this.getFieldsInfo();
+                this.finalize(phones);
+            },
+            async companyHandler(id){
+                this.type = 'company'
+                this.companyInfo = await this.getCompany(id)
+                const conts = await this.getCompanyContacts(id)
+                const contactInfoMoreText = translates[this.lang].contact_info_more_text;
+                if(conts.length > 0) this.contactInfo = await this.getContact(conts[0].CONTACT_ID)
+                if(conts.length > 1) this.showError(contactInfoMoreText)
+                console.log(this.companyInfo);
+                let phones = []
+                if(this.companyInfo.HAS_PHONE === 'Y') phones = this.companyInfo.PHONE
+                else if(this.contactInfo && this.contactInfo.HAS_PHONE === 'Y'){
+                    phones = this.contactInfo.PHONE;
+                }
+                const contactInfoContText = translates[this.lang].contact_info_cont_text;
+                if(phones.length <= 0) return this.showError(contactInfoContText);
+                this.assignedId = this.companyInfo['ASSIGNED_BY_ID'];
+
+                this.fieldsInfo = await this.getFieldsInfo();
+                this.finalize(phones);
+            },
+            async finalize(phones){
+                this.templates = await this.getTemplates();
+                this.setPhones(phones);
+                this.setTempls();
+                this.getAppOptions();
+                BX24.fitWindow();
+            },
+            getDeal: async id => {
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('crm.deal.get', {
+                        id
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data());
+                        }
+                    });
+                })
+            },
+            async getLead(id){
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('crm.lead.get', {
+                        id
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data());
+                        }
+                    });
+                })
+            },
+            getContact: async id => {
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('crm.contact.get', {
+                        id
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data());
+                        }
+                    });
+                })
+            },
+            async getCompany(id){
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('crm.company.get', {
+                        id
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data());
+                        }
+                    });
+                })
+            },
+            async getAssigned(id){
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('user.get', {
+                        id
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data()[0]);
+                        }
+                    });
+                })
+            },
+            async getCompanyContacts(id){
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod(
+                        "crm.company.contact.items.get", 
+                        {
+                            id: id 
+                        }, (result) =>  {
+                        if(result.error()){
+                            console.error(result.error());
+                            resolve({error: result.error()});
+                        }
+                        else
+                            resolve(result.data());
+                        }
+                    );
+                })
+            },
+            async getFieldsInfo(){
+                const batch = {};
+                if(this.dealInfo){
+                    batch.dealFields = 'crm.deal.fields';
+                }
+                if(this.contactInfo){
+                    batch.contactFields = 'crm.contact.fields';
+                }
+                if(this.companyInfo){
+                    batch.companyFields = 'crm.company.fields';
+                }
+                if(this.leadInfo){
+                    batch.leadFields = 'crm.lead.fields';
+                }
+                if(!Object.values(batch).length) return false;
+                return new Promise((resolve, reject)=>{
+                    BX24.callMethod(
+                        'batch',
+                        {
+                            'halt': 0,
+                            'cmd': batch
+                        },
+                        (result) =>
+                        {
+                            try {
+                                resolve(result.answer.result.result);
+                                console.log(result.answer.result.result);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }
+                    );
+                });
+            },
+            async getCRMStatusFieldVal(STATUS_ID){
+                return new Promise((resolve, reject)=>{
+                    BX24.callMethod("crm.status.list", 		
+                    { 			
+                        filter: { STATUS_ID }		
+                    },
+                    (result) => {
+                        if(result.error())
+                            reject(result.error());
+                        else
+                        {
+                            resolve(result.data()[0].NAME);
+                        }
+                    });
+                });
+            },
+            getTemplates:async function(){
+                const type = this.type
+                return new Promise((resolve, reject) => {
+                    BX24.callMethod('entity.item.get', {
+                        ENTITY: 'templates',
+                        FILTER: {
+                            PROPERTY_type: type
+                        }
+                    }, (res) => {
+                        if(res.error()){
+                            console.error(res.error());
+                            resolve({error: res.error()});
+                        } else {
+                            resolve(res.data());
+                        }
+                    });
+                })
+            },
+            showError: text => {
+                document.querySelector('.error').innerHTML = text;
+                return false;
+            },
+            setPhones: phones => {
+                const form = document.getElementById('wa_form');
+                const selector = form.querySelector('[name="phone"]')
+                let i = 0
+                phones.forEach(phone => {
+                    let option = document.createElement('option')
+                    option.value = phone.VALUE
+                    option.innerText = phone.VALUE
+                    if(i === 0) option.selected = true
+                    selector.appendChild(option)
+                    i++
+                })
+            },
+            setTempls: function(){
+                const form = document.getElementById('wa_form');
+                const selector = form.querySelector('[name="templ"]')
+                let i = 0
+                this.templates.forEach(templ => {
+                    let option = document.createElement('option')
+                    option.value = templ.ID
+                    option.innerText = templ.NAME
+                    if(i === 0) {
+                        option.selected = true
+                        this.setTemplValue(templ.ID)
+                    }
+                    selector.appendChild(option)
+                    i++
+                })
+            },
+            templChangeHandler: function(e){
+                const tar = e.target
+                const option = tar.querySelector('option:checked')
+                this.setTemplValue(option.value)
+            },
+            setTemplValue: async function(id) {
+                const templ = this.templates.find(t => t.ID === id)
+                document.querySelector('textarea').value = await this.normalizeTemplate(templ.PROPERTY_VALUES.template)
+            },
+            normalizeTemplate: async function(templText){
+                try {
+                    templText = decodeURIComponent(escape(atob(templText)));
+                    //console.log('Parse it!', templText);
+                } catch (error) {
+                    console.log(translates[this.lang].templates_log);
+                }
+                let nText = templText;
+                const templaArr = templText.match(/#?(\w+)?.(\w+)#/g)
+                
+                //templaArr.forEach( async ta => {
+                if(templaArr){
+                    for(const ta of templaArr){
+                        let type = this.type
+                        const param = ta.replace(/#/g, '')
+                        let splitter = []
+                        if(param.split('.').length > 1){
+                            splitter = param.split('.')
+                            type = splitter[0].toLowerCase()
+                            // param = splitter[1]
+                        }
+                        if(!this[`${type}Info`]){
+                            const ftype = `${type[0].toUpperCase()}${type.slice(1)}`
+                            let id = this[`${this.type}Info`][`${type.toUpperCase()}_ID`]
+                            if(ftype === 'Assigned') id = this.assignedId
+                            if(id > 0)
+                                this[`${type}Info`] = await this[`get${ftype}`](id)
+                            else
+                                this[`${type}Info`] = {}
+                        }
+                        let val = this[`${type}Info`][splitter.length > 0? splitter[1] : param];
+                        if(this.fieldsInfo && this.fieldsInfo[`${type}Fields`]){
+                            try{
+                                const fieldInfo = this.fieldsInfo[`${type}Fields`][splitter.length > 0? splitter[1] : param];
+                                console.log(fieldInfo);
+                                if(fieldInfo.type == "enumeration"){
+                                    val = fieldInfo.items.find(item => +item.ID === +val).VALUE;
+                                } else if(fieldInfo.type === "crm_status"){
+                                    val = await this.getCRMStatusFieldVal(val);
+                                }
+                            } catch (error){
+                                console.error(error);
+                            }
+                        }
+                        if(typeof val === 'object' && val && val[0]){
+                            val = val[0].VALUE;
+                        }
+                        if(!val) val = '';
+                        nText = nText.replace(new RegExp(`#${param}#`, 'g'), val)
+                    }
+                }
+                
+                return nText;
+            },
+            getAppOptions(){
+                const appOPT = +BX24.appOption.get('isAppURL');
+                const isAppURL = !!appOPT;
+                document.querySelector(['[name="app_url"]']).checked = isAppURL;
+            },
+            setLang(lang){
+                this.lang = lang;
+            }
         }
+function getLangAndSetTranslates(lang){
+    const nameOption = document.querySelector('[name="phone"]').querySelector('option');
+    nameOption.innerText = translates[lang].numder_option;
+    const templOption = document.querySelector('[name="templ"]').querySelector('option');
+    templOption.innerText = translates[lang].templ_option;
+    const appUrlInput = document.querySelector('.input-text');
+    appUrlInput.innerText = translates[lang].app_url;
+    const submit = document.querySelector('.ui-btn');
+    submit.innerText = translates[lang].submit;
+}
     </script>
 </body>
 </html>
