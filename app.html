@@ -1,109 +1,110 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Meu App WhatsApp</title>
+    <meta charset="UTF-8">
+    <title>WhatsApp Rápido</title>
     <script src="//api.bitrix24.com/api/v1/"></script>
     <style>
         body {
-            font-family: Arial;
-            padding: 20px;
-            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
         }
-        
-        .caixa {
+        .container {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 0 auto;
         }
-        
         h1 {
             color: #25D366;
             font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
         }
-        
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
         button {
-            background-color: #25D366;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background: #25D366;
             color: white;
-            padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
+            font-weight: bold;
         }
-        
         button:hover {
-            background-color: #128C7E;
+            background: #128C7E;
         }
-        
-        .telefone {
-            font-size: 18px;
-            margin: 10px 0;
+        .info {
+            text-align: center;
+            color: #666;
+            margin-top: 15px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="caixa">
-        <h1>🟢 WhatsApp Rápido</h1>
-        <p>Clique no botão para abrir o WhatsApp!</p>
+    <div class="container">
+        <h1>📱 WhatsApp Rápido</h1>
         
-        <div class="telefone" id="numeroTelefone">
-            Carregando número...
-        </div>
+        <input type="tel" 
+               id="telefone" 
+               placeholder="Digite o telefone (com DDD)"
+               onkeypress="if(event.key === 'Enter') abrirWhatsApp()">
         
         <button onclick="abrirWhatsApp()">
-            📱 Abrir WhatsApp
+            Abrir WhatsApp
         </button>
+        
+        <div class="info">
+            Digite o número com DDD<br>
+            Exemplo: 11999887766
+        </div>
     </div>
 
     <script>
-        // Aqui começa a mágica! 🪄
-        
-        var numeroDoCliente = "";
-        
-        // Quando o app carregar
-        BX24.init(function(){
-            // Pega as informações do cliente
-            BX24.callMethod(
-                'crm.lead.get',
-                { id: BX24.placement.info().ID },
-                function(result){
-                    if(result.data()){
-                        // Pega o telefone
-                        numeroDoCliente = result.data().PHONE;
-                        
-                        // Mostra na tela
-                        if(numeroDoCliente && numeroDoCliente.length > 0){
-                            document.getElementById('numeroTelefone').innerHTML = 
-                                "📞 Telefone: " + numeroDoCliente[0].VALUE;
-                        } else {
-                            document.getElementById('numeroTelefone').innerHTML = 
-                                "❌ Nenhum telefone encontrado";
-                        }
-                    }
-                }
-            );
-        });
-        
-        // Função para abrir o WhatsApp
-        function abrirWhatsApp(){
-            if(numeroDoCliente && numeroDoCliente.length > 0){
-                // Pega só os números
-                var numeroLimpo = numeroDoCliente[0].VALUE.replace(/\D/g, '');
-                
-                // Se não tem 55 no começo, adiciona
-                if(!numeroLimpo.startsWith('55')){
-                    numeroLimpo = '55' + numeroLimpo;
-                }
-                
-                // Cria o link do WhatsApp
-                var linkWhatsApp = 'https://wa.me/' + numeroLimpo;
-                
-                // Abre em nova aba
-                window.open(linkWhatsApp, '_blank');
-            } else {
-                alert('😕 Ops! Não encontrei um número de telefone!');
+        // Função simples para abrir o WhatsApp
+        function abrirWhatsApp() {
+            var telefone = document.getElementById('telefone').value;
+            
+            // Remove caracteres especiais
+            telefone = telefone.replace(/\D/g, '');
+            
+            if (telefone.length < 10) {
+                alert('Por favor, digite um número válido com DDD');
+                return;
             }
+            
+            // Adiciona o código do Brasil se necessário
+            if (!telefone.startsWith('55')) {
+                telefone = '55' + telefone;
+            }
+            
+            // Abre o WhatsApp
+            window.open('https://wa.me/' + telefone, '_blank');
+        }
+
+        // Tenta pegar informações do Bitrix24
+        try {
+            BX24.init(function(){
+                // App está pronto
+                console.log('App WhatsApp carregado!');
+            });
+        } catch(e) {
+            // Funciona mesmo sem o Bitrix24
+            console.log('Rodando fora do Bitrix24');
         }
     </script>
 </body>
