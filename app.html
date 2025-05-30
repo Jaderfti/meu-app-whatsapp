@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meu App WhatsApp</title>
+    <script src="//api.bitrix24.com/api/v1/"></script>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .caixa {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #25D366;
+            font-size: 24px;
+        }
+        
+        button {
+            background-color: #25D366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #128C7E;
+        }
+        
+        .telefone {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="caixa">
+        <h1>🟢 WhatsApp Rápido</h1>
+        <p>Clique no botão para abrir o WhatsApp!</p>
+        
+        <div class="telefone" id="numeroTelefone">
+            Carregando número...
+        </div>
+        
+        <button onclick="abrirWhatsApp()">
+            📱 Abrir WhatsApp
+        </button>
+    </div>
+
+    <script>
+        // Aqui começa a mágica! 🪄
+        
+        var numeroDoCliente = "";
+        
+        // Quando o app carregar
+        BX24.init(function(){
+            // Pega as informações do cliente
+            BX24.callMethod(
+                'crm.lead.get',
+                { id: BX24.placement.info().ID },
+                function(result){
+                    if(result.data()){
+                        // Pega o telefone
+                        numeroDoCliente = result.data().PHONE;
+                        
+                        // Mostra na tela
+                        if(numeroDoCliente && numeroDoCliente.length > 0){
+                            document.getElementById('numeroTelefone').innerHTML = 
+                                "📞 Telefone: " + numeroDoCliente[0].VALUE;
+                        } else {
+                            document.getElementById('numeroTelefone').innerHTML = 
+                                "❌ Nenhum telefone encontrado";
+                        }
+                    }
+                }
+            );
+        });
+        
+        // Função para abrir o WhatsApp
+        function abrirWhatsApp(){
+            if(numeroDoCliente && numeroDoCliente.length > 0){
+                // Pega só os números
+                var numeroLimpo = numeroDoCliente[0].VALUE.replace(/\D/g, '');
+                
+                // Se não tem 55 no começo, adiciona
+                if(!numeroLimpo.startsWith('55')){
+                    numeroLimpo = '55' + numeroLimpo;
+                }
+                
+                // Cria o link do WhatsApp
+                var linkWhatsApp = 'https://wa.me/' + numeroLimpo;
+                
+                // Abre em nova aba
+                window.open(linkWhatsApp, '_blank');
+            } else {
+                alert('😕 Ops! Não encontrei um número de telefone!');
+            }
+        }
+    </script>
+</body>
+</html>
